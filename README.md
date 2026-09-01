@@ -48,7 +48,7 @@ RegisterBitEditor 是一个使用 SwiftUI 编写的原生 macOS 调试工具，�
 
 ### 直接运行
 
-请从本仓库的 **Releases** 页面下载 `RegisterBitEditor-macOS.zip`，解压后打开 `RegisterBitEditor.app`。应用安装包只发布在 Releases 中，不放入源码仓库。
+请从本仓库的 **Releases** 页面下载 `RegisterBitEditor-v0.1-macOS.zip`，解压后打开 `RegisterBitEditor.app`。应用安装包只发布在 Releases 中，不放入源码仓库。
 
 应用目前使用 ad-hoc 临时签名，没有经过 Apple 公证。首次打开时，如果 macOS 显示安全提示，请右键应用并选择“打开”，或在“系统设置 → 隐私与安全性”中允许。
 
@@ -138,7 +138,7 @@ RegisterBitEditor is a native macOS debugging utility built with SwiftUI. It is 
 
 ### Run the App
 
-Download `RegisterBitEditor-macOS.zip` from this repository's **Releases** page, extract it, and open `RegisterBitEditor.app`. Application builds are published only through Releases and are not stored in the source repository.
+Download `RegisterBitEditor-v0.1-macOS.zip` from this repository's **Releases** page, extract it, and open `RegisterBitEditor.app`. Application builds are published only through Releases and are not stored in the source repository.
 
 The bundled app uses an ad-hoc signature and is not notarized by Apple. On first launch, you may need to right-click the app and choose **Open**, or allow it under **System Settings → Privacy & Security**.
 
