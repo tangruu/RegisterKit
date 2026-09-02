@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject private var model: RegisterViewModel
+    @State private var capacityHexShake: CGFloat = 0
+    @State private var capacityUnitShakes: [CapacityUnit: CGFloat] = [:]
 
     var body: some View {
         ScrollView {
@@ -9,6 +11,9 @@ struct ContentView: View {
                 bitPanel
                 numberPanel
                 bottomBar
+                Divider()
+                    .padding(.top, 2)
+                capacityPanel
             }
             .padding(10)
         }
@@ -21,8 +26,8 @@ struct ContentView: View {
 
     private var preferredWindowSize: NSSize {
         model.width == .bits32
-            ? NSSize(width: 560, height: 350)
-            : NSSize(width: 680, height: 470)
+            ? NSSize(width: 560, height: 420)
+            : NSSize(width: 680, height: 520)
     }
 
     private var hexRowWidth: CGFloat {
@@ -193,9 +198,133 @@ struct ContentView: View {
         .buttonStyle(.bordered)
     }
 
+    private var capacityPanel: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 12) {
+                capacityTextField(
+                    label: "十六进制：",
+                    text: Binding(
+                        get: { model.capacityHexText },
+                        set: { text in
+                            guard !model.updateCapacityHexadecimal(text) else { return }
+                            withAnimation(.linear(duration: 0.32)) {
+                                capacityHexShake += 1
+                            }
+                        }
+                    ),
+                    field: .hexadecimal
+                )
+                .frame(width: 205)
+
+                capacityTextField(
+                    label: "十进制：",
+                    text: Binding(
+                        get: { model.capacityDecimalText },
+                        set: { model.updateCapacityDecimal($0) }
+                    ),
+                    field: .decimal
+                )
+                .frame(width: 225)
+            }
+
+            HStack(spacing: 6) {
+                Text("单位换算：")
+                    .fontWeight(.medium)
+                    .frame(width: 66, alignment: .leading)
+
+                ForEach(CapacityUnit.allCases, id: \.self) { unit in
+                    capacityUnitField(unit)
+                }
+
+                Text("（1024 进位）")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.leading, 4)
+            }
+        }
+        .padding(.horizontal, 9)
+        .padding(.bottom, 7)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func capacityTextField(
+        label: String,
+        text: Binding<String>,
+        field: CapacityField
+    ) -> some View {
+        HStack(spacing: 6) {
+            Text(label)
+                .fontWeight(.medium)
+                .frame(width: 66, alignment: .leading)
+
+            TextField("", text: text)
+                .font(.system(.body, design: .monospaced))
+                .textFieldStyle(.roundedBorder)
+                .modifier(CapacityFieldShake(
+                    animatableData: field == .hexadecimal
+                        ? capacityHexShake
+                        : 0
+                ))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(
+                            model.invalidCapacityFields.contains(field) ? Color.red : Color.clear,
+                            lineWidth: 1
+                        )
+                }
+                .onSubmit { model.commitCapacityField(field) }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func capacityUnitField(_ unit: CapacityUnit) -> some View {
+        HStack(spacing: 4) {
+            TextField("", text: Binding(
+                get: { model.capacityText(for: unit) },
+                set: { text in
+                    guard model.updateCapacityUnit(text, unit: unit) else { return }
+                    withAnimation(.linear(duration: 0.32)) {
+                        capacityUnitShakes[unit, default: 0] += 1
+                    }
+                }
+            ))
+            .font(.system(.body, design: .monospaced))
+            .textFieldStyle(.roundedBorder)
+            .frame(width: 48)
+            .modifier(CapacityFieldShake(
+                animatableData: capacityUnitShakes[unit] ?? 0
+            ))
+            .overlay {
+                RoundedRectangle(cornerRadius: 5)
+                    .stroke(
+                        model.invalidCapacityFields.contains(unit.field) ? Color.red : Color.clear,
+                        lineWidth: 1
+                    )
+            }
+            .onSubmit { model.commitCapacityField(unit.field) }
+
+            Text(unit.title)
+                .frame(minWidth: unit == .bytes ? 10 : 20, alignment: .leading)
+        }
+    }
+
     private func wideButton(_ title: String, action: @escaping () -> Void) -> some View {
         Button(title, action: action)
             .frame(maxWidth: .infinity)
+    }
+}
+
+private struct CapacityFieldShake: GeometryEffect {
+    var travelDistance: CGFloat = 5
+    var shakesPerAnimation = 3
+    var animatableData: CGFloat
+
+    func effectValue(size: CGSize) -> ProjectionTransform {
+        ProjectionTransform(CGAffineTransform(
+            translationX: travelDistance
+                * sin(animatableData * .pi * 2 * CGFloat(shakesPerAnimation)),
+            y: 0
+        ))
     }
 }
 
@@ -203,6 +332,6 @@ struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
             .environmentObject(RegisterViewModel())
-            .frame(width: 560, height: 350)
+            .frame(width: 560, height: 420)
     }
 }

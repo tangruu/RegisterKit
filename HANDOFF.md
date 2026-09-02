@@ -1,21 +1,21 @@
-# RegisterBitEditor Handoff
+# RegisterKit Handoff
 
 ## 项目概览
 
-RegisterBitEditor 是一个原生 macOS SwiftUI 寄存器位编辑器。目前只构建 Apple Silicon（arm64），最低支持 macOS 13。
+RegisterKit（寄存器工具箱）是一个原生 macOS SwiftUI 寄存器调试与容量换算工具。目前只构建 Apple Silicon（arm64），最低支持 macOS 13。
 
 - 项目根目录：克隆后的 `registerdump` 仓库目录
 - Xcode 工程：`RegisterBitEditor.xcodeproj`
 - App target：`RegisterBitEditor`
-- Bundle ID：`com.codex.RegisterBitEditor`
-- 当前版本：`0.1 (14)`
-- Release App：由 Release 构建生成，不纳入 Git
-- 分发压缩包：作为 GitHub Release 附件发布，不纳入 Git
+- 对外产品名：`RegisterKit`
+- Bundle ID：`com.codex.RegisterKit`
+- 当前版本：`0.2 (20)`
+- Release App：构建到 `output/RegisterKit.app`，不纳入 Git
 
 ## 当前产品要求
 
 - 默认 32 位，底部最右侧“64位模式”按钮切换位宽。
-- 32 位窗口为 560×350；64 位自动平滑扩大到 680×470，切回时自动缩小。
+- 32 位窗口为 560×420；64 位自动平滑扩大到 680×520，切回时自动缩小。
 - 16 bit 一行；4 bit 为一个小组，两个小组组成一个 8-bit 大组。
 - bit 编号位于按钮框外，按钮框中只显示 0/1。
 - Hex、Dec、Bin 标签及输入框左边缘对齐。
@@ -28,6 +28,13 @@ RegisterBitEditor 是一个原生 macOS SwiftUI 寄存器位编辑器。目前�
 - “计算器”打开 `/System/Applications/Calculator.app`，旧系统路径作为回退。
 - AND / OR / XOR / NOT 位运算在菜单栏“位运算”中；前三项弹窗输入操作数。
 - 每个进制标签可点击复制对应数值；菜单中也可复制 Hex。
+- 主功能区下方用分割线隔开容量换算区域；容量 Hex、Dec、GiB、MiB、KiB、B 实时同步。
+- 容量 Hex 始终带 `0x`，从右向左每 4 位自动插入空格，例如 `0x1 2345`。
+- 单位采用 1024 进位，界面以 `B（1024 进位）` 提示；GiB、MiB、KiB、B 数值框预留 4 位。
+- 容量换算支持范围为 `0` 至 `1024⁴ - 1 B`，分解后的每段为 `0...1023`。
+- 容量 Hex 自动移除无意义的前导零；超过 10 个有效十六进制数字或超过总上限时拒绝输入、保持原值并让输入框抖动。
+- GiB、MiB、KiB、B 任一输入超过 1023 时直接限制为 1023，不执行跨单位进位。
+- 单位输入被限制到 1023 时，对应输入框抖动；系统 App 菜单中的“关于”窗口显示版本、构建号、构建时间、容量范围和可点击的 GitHub 链接。
 
 ## 源码结构
 
@@ -71,18 +78,17 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 成功后，从以下位置取得构建产物：
 
 ```text
-/private/tmp/RegisterBitEditorDerivedData/Build/Products/Release/RegisterBitEditor.app
+/private/tmp/RegisterBitEditorDerivedData/Build/Products/Release/RegisterKit.app
 ```
 
-交付时应在临时输出目录创建全新的 App，进行临时签名，并将压缩包上传为 GitHub Release 附件。不要把 `.app` 或 `.zip` 提交进源码仓库：
+交付时应把全新的 App 复制到项目的 `output` 目录并进行临时签名。不要把 `.app` 提交进源码仓库，也不要额外生成 ZIP：
 
 ```sh
-mkdir -p /private/tmp/RegisterBitEditorRelease
-ditto /private/tmp/RegisterBitEditorDerivedData/Build/Products/Release/RegisterBitEditor.app /private/tmp/RegisterBitEditorRelease/RegisterBitEditor.app
-strip -Sx /private/tmp/RegisterBitEditorRelease/RegisterBitEditor.app/Contents/MacOS/RegisterBitEditor
-codesign --force --deep --sign - /private/tmp/RegisterBitEditorRelease/RegisterBitEditor.app
-codesign --verify --deep --strict /private/tmp/RegisterBitEditorRelease/RegisterBitEditor.app
-ditto -c -k --sequesterRsrc --keepParent /private/tmp/RegisterBitEditorRelease/RegisterBitEditor.app /private/tmp/RegisterBitEditor-macOS.zip
+mkdir -p output
+ditto /private/tmp/RegisterBitEditorDerivedData/Build/Products/Release/RegisterKit.app output/RegisterKit.app
+strip -Sx output/RegisterKit.app/Contents/MacOS/RegisterKit
+codesign --force --deep --sign - output/RegisterKit.app
+codesign --verify --deep --strict output/RegisterKit.app
 ```
 
 修改后务必同步增加 `MARKETING_VERSION` 和 `CURRENT_PROJECT_VERSION`，然后完成 Release 编译，不要只交付源码。
@@ -99,8 +105,9 @@ ditto -c -k --sequesterRsrc --keepParent /private/tmp/RegisterBitEditorRelease/R
 8. 点击 ASCII，确认 0–127 一页显示且没有滚动条。
 9. 点击计算器，确认系统 Calculator.app 打开。
 10. 检查置顶关闭和重新开启均立即生效。
-11. 运行 `codesign --verify --deep --strict /private/tmp/RegisterBitEditorRelease/RegisterBitEditor.app`。
-12. 用 `stat` 核对 Release App 和 ZIP 的时间戳确实为本次构建时间。
+11. 输入容量 `1025`，确认显示为 `0x401`、`1 KiB + 1 B`；输入较长 Hex 时确认每 4 位自动分组。
+12. 运行 `codesign --verify --deep --strict output/RegisterKit.app`。
+13. 用 `stat` 核对 `output/RegisterKit.app` 的时间戳确实为本次构建时间。
 
 ## 分发注意事项
 

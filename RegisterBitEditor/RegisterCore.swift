@@ -28,6 +28,187 @@ enum BitwiseOperation {
     case and, or, xor
 }
 
+enum CapacityField: Hashable {
+    case hexadecimal, decimal, gigabytes, megabytes, kilobytes, bytes
+}
+
+enum CapacityUnit: CaseIterable, Hashable {
+    case gigabytes, megabytes, kilobytes, bytes
+
+    var title: String {
+        switch self {
+        case .gigabytes: return "GiB"
+        case .megabytes: return "MiB"
+        case .kilobytes: return "KiB"
+        case .bytes: return "B"
+        }
+    }
+
+    var field: CapacityField {
+        switch self {
+        case .gigabytes: return .gigabytes
+        case .megabytes: return .megabytes
+        case .kilobytes: return .kilobytes
+        case .bytes: return .bytes
+        }
+    }
+}
+
+struct CapacityParts: Equatable {
+    var gigabytes: UInt64
+    var megabytes: UInt64
+    var kilobytes: UInt64
+    var bytes: UInt64
+
+    subscript(unit: CapacityUnit) -> UInt64 {
+        get {
+            switch unit {
+            case .gigabytes: return gigabytes
+            case .megabytes: return megabytes
+            case .kilobytes: return kilobytes
+            case .bytes: return bytes
+            }
+        }
+        set {
+            switch unit {
+            case .gigabytes: gigabytes = newValue
+            case .megabytes: megabytes = newValue
+            case .kilobytes: kilobytes = newValue
+            case .bytes: bytes = newValue
+            }
+        }
+    }
+}
+
+enum CapacityCore {
+    struct DecimalParseResult {
+        let value: UInt64
+        let wasClamped: Bool
+    }
+
+    static let radix: UInt64 = 1024
+    static let maximumValue = radix * radix * radix * radix - 1
+    static let maximumComponent = radix - 1
+
+    static func parseHexadecimal(_ text: String) -> UInt64? {
+        var cleaned = text
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: " ", with: "")
+            .replacingOccurrences(of: "_", with: "")
+
+        if cleaned.lowercased().hasPrefix("0x") {
+            cleaned.removeFirst(2)
+        }
+
+        let hexadecimalDigits = CharacterSet(charactersIn: "0123456789abcdefABCDEF")
+        guard !cleaned.isEmpty,
+              cleaned.unicodeScalars.allSatisfy(hexadecimalDigits.contains) else {
+            return nil
+        }
+
+        while cleaned.count > 1 && cleaned.first == "0" {
+            cleaned.removeFirst()
+        }
+
+        // 1024 GiB - 1 B is 0xFF FFFF FFFF (10 hexadecimal digits).
+        guard cleaned.count <= 10 else { return nil }
+        guard let value = UInt64(cleaned, radix: 16) else { return nil }
+        return value <= maximumValue ? value : nil
+    }
+
+    static func parseDecimal(_ text: String, maximum: UInt64) -> UInt64? {
+        parseDecimalResult(text, maximum: maximum)?.value
+    }
+
+    static func parseDecimalResult(
+        _ text: String,
+        maximum: UInt64
+    ) -> DecimalParseResult? {
+        var cleaned = text
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "_", with: "")
+
+        let decimalDigits = CharacterSet(charactersIn: "0123456789")
+        guard !cleaned.isEmpty,
+              cleaned.unicodeScalars.allSatisfy(decimalDigits.contains) else {
+            return nil
+        }
+
+        while cleaned.count > 1 && cleaned.first == "0" {
+            cleaned.removeFirst()
+        }
+
+        let maximumText = String(maximum)
+        if cleaned.count > maximumText.count {
+            return DecimalParseResult(value: maximum, wasClamped: true)
+        }
+
+        guard let value = UInt64(cleaned) else {
+            return DecimalParseResult(value: maximum, wasClamped: true)
+        }
+        return DecimalParseResult(
+            value: min(value, maximum),
+            wasClamped: value > maximum
+        )
+    }
+
+    static func formatHexadecimal(_ value: UInt64, uppercase: Bool) -> String {
+        let digits = String(value, radix: 16, uppercase: uppercase)
+        var groups: [Substring] = []
+        var end = digits.endIndex
+
+        while end > digits.startIndex {
+            let start = digits.index(end, offsetBy: -4, limitedBy: digits.startIndex)
+                ?? digits.startIndex
+            groups.append(digits[start..<end])
+            end = start
+        }
+
+        return "0x" + groups.reversed().joined(separator: " ")
+    }
+
+    static func parts(for value: UInt64) -> CapacityParts {
+        let kilobyte = radix
+        let megabyte = kilobyte * radix
+        let gigabyte = megabyte * radix
+
+        return CapacityParts(
+            gigabytes: value / gigabyte,
+            megabytes: value / megabyte % radix,
+            kilobytes: value / kilobyte % radix,
+            bytes: value % radix
+        )
+    }
+
+    static func compose(_ parts: CapacityParts) -> UInt64? {
+        guard parts.gigabytes <= maximumComponent,
+              parts.megabytes <= maximumComponent,
+              parts.kilobytes <= maximumComponent,
+              parts.bytes <= maximumComponent else {
+            return nil
+        }
+
+        let kilobyte = radix
+        let megabyte = kilobyte * radix
+        let gigabyte = megabyte * radix
+        let terms = [
+            parts.gigabytes.multipliedReportingOverflow(by: gigabyte),
+            parts.megabytes.multipliedReportingOverflow(by: megabyte),
+            parts.kilobytes.multipliedReportingOverflow(by: kilobyte)
+        ]
+        guard terms.allSatisfy({ !$0.overflow }) else { return nil }
+
+        var total = parts.bytes
+        for term in terms {
+            let result = total.addingReportingOverflow(term.partialValue)
+            guard !result.overflow else { return nil }
+            total = result.partialValue
+        }
+
+        return total <= maximumValue ? total : nil
+    }
+}
+
 enum RegisterCore {
     static func mask(for width: RegisterWidth) -> UInt64 {
         width == .bits64 ? UInt64.max : UInt64(UInt32.max)

@@ -20,6 +20,33 @@ struct CoreSelfTest {
         assert(RegisterCore.shiftedLeft(1, by: 32, width: .bits32) == 0)
         assert(RegisterCore.shiftedRight(0x8000_0000, by: 31, width: .bits32) == 1)
 
+        assert(CapacityCore.parseHexadecimal("0x1 2345") == 0x12345)
+        assert(CapacityCore.parseHexadecimal("0x0000 0001 2345") == 0x12345)
+        assert(CapacityCore.parseHexadecimal("0x200000000") == 0x200000000)
+        assert(CapacityCore.parseHexadecimal("0x1 0000 0000 00") == nil)
+        assert(CapacityCore.parseDecimal("999999999999999999999", maximum: 1023) == 1023)
+        assert(CapacityCore.parseDecimalResult("1023", maximum: 1023)?.wasClamped == false)
+        assert(CapacityCore.parseDecimalResult("1024", maximum: 1023)?.wasClamped == true)
+        assert(CapacityCore.formatHexadecimal(0x12345, uppercase: true) == "0x1 2345")
+        assert(CapacityCore.parts(for: 1025) == CapacityParts(
+            gigabytes: 0,
+            megabytes: 0,
+            kilobytes: 1,
+            bytes: 1
+        ))
+        assert(CapacityCore.compose(CapacityParts(
+            gigabytes: 0,
+            megabytes: 0,
+            kilobytes: 0,
+            bytes: 1024
+        )) == nil)
+        assert(CapacityCore.parts(for: CapacityCore.maximumValue) == CapacityParts(
+            gigabytes: 1023,
+            megabytes: 1023,
+            kilobytes: 1023,
+            bytes: 1023
+        ))
+
         print("Core tests passed")
     }
 }

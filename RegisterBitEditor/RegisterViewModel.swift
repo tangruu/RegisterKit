@@ -19,8 +19,19 @@ final class RegisterViewModel: ObservableObject {
     @Published private(set) var invalidBases: Set<NumericBase> = []
     @Published private(set) var operandIsInvalid = false
 
+    @Published private(set) var capacityHexText = ""
+    @Published private(set) var capacityDecimalText = ""
+    @Published private(set) var capacityGBText = ""
+    @Published private(set) var capacityMBText = ""
+    @Published private(set) var capacityKBText = ""
+    @Published private(set) var capacityBText = ""
+    @Published private(set) var invalidCapacityFields: Set<CapacityField> = []
+
+    private var capacityValue: UInt64 = 0
+
     init() {
         synchronizeFields()
+        synchronizeCapacityFields()
     }
 
     var bitIndices: [Int] {
@@ -38,6 +49,7 @@ final class RegisterViewModel: ObservableObject {
     func setUppercase(_ enabled: Bool) {
         uppercase = enabled
         synchronizeFields()
+        synchronizeCapacityFields()
     }
 
     func setSignedMode(_ enabled: Bool) {
@@ -109,6 +121,62 @@ final class RegisterViewModel: ObservableObject {
         NSPasteboard.general.setString(formatted(base), forType: .string)
     }
 
+    @discardableResult
+    func updateCapacityHexadecimal(_ text: String) -> Bool {
+        guard let value = CapacityCore.parseHexadecimal(text) else {
+            return false
+        }
+
+        capacityValue = value
+        invalidCapacityFields.removeAll()
+        synchronizeCapacityFields()
+        return true
+    }
+
+    func updateCapacityDecimal(_ text: String) {
+        capacityDecimalText = text
+        guard let value = CapacityCore.parseDecimal(
+            text,
+            maximum: CapacityCore.maximumValue
+        ) else {
+            invalidCapacityFields.insert(.decimal)
+            return
+        }
+
+        capacityValue = value
+        invalidCapacityFields.removeAll()
+        synchronizeCapacityFields(excluding: .decimal)
+    }
+
+    @discardableResult
+    func updateCapacityUnit(_ text: String, unit: CapacityUnit) -> Bool {
+        assignCapacityUnitText(text, unit: unit)
+        guard let result = CapacityCore.parseDecimalResult(
+            text,
+            maximum: CapacityCore.maximumComponent
+        ) else {
+            invalidCapacityFields.insert(unit.field)
+            return false
+        }
+
+        var parts = CapacityCore.parts(for: capacityValue)
+        parts[unit] = result.value
+        guard let value = CapacityCore.compose(parts) else {
+            invalidCapacityFields.insert(unit.field)
+            return false
+        }
+
+        capacityValue = value
+        invalidCapacityFields.removeAll()
+        synchronizeCapacityFields()
+        return result.wasClamped
+    }
+
+    func commitCapacityField(_ field: CapacityField) {
+        invalidCapacityFields.remove(field)
+        synchronizeCapacityFields()
+    }
+
     func openCalculator() {
         let modernURL = URL(fileURLWithPath: "/System/Applications/Calculator.app")
         let legacyURL = URL(fileURLWithPath: "/Applications/Calculator.app")
@@ -116,6 +184,26 @@ final class RegisterViewModel: ObservableObject {
             ? modernURL
             : legacyURL
         NSWorkspace.shared.open(calculatorURL)
+    }
+
+    func showAbout() {
+        let bundle = Bundle.main
+        let version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+            ?? "未知"
+        let build = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+            ?? "未知"
+
+        let alert = NSAlert()
+        alert.messageText = "RegisterKit"
+        alert.informativeText = """
+        版本：v\(version)（构建 \(build)）
+        构建时间：\(formattedBuildTime())
+        容量范围：0 ～ 1024 GiB - 1 B
+        """
+        alert.icon = NSApplication.shared.applicationIconImage
+        alert.accessoryView = githubLinkView()
+        alert.addButton(withTitle: "好")
+        alert.runModal()
     }
 
     func showASCII() {
@@ -173,6 +261,42 @@ final class RegisterViewModel: ObservableObject {
         return String(Character(UnicodeScalar(code)!))
     }
 
+    private func formattedBuildTime() -> String {
+        guard let executableURL = Bundle.main.executableURL,
+              let attributes = try? FileManager.default.attributesOfItem(
+                atPath: executableURL.path
+              ),
+              let date = attributes[.modificationDate] as? Date else {
+            return "未知"
+        }
+
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.timeZone = .current
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        return formatter.string(from: date)
+    }
+
+    private func githubLinkView() -> NSTextField {
+        let githubURL = URL(string: "https://github.com/tangruu/registerdump")!
+        let text = NSMutableAttributedString(string: "GitHub：")
+        text.append(NSAttributedString(
+            string: "github.com/tangruu/registerdump",
+            attributes: [
+                .link: githubURL,
+                .foregroundColor: NSColor.linkColor,
+                .underlineStyle: NSUnderlineStyle.single.rawValue
+            ]
+        ))
+
+        let field = NSTextField(labelWithString: "")
+        field.attributedStringValue = text
+        field.isSelectable = true
+        field.allowsEditingTextAttributes = true
+        field.frame = NSRect(x: 0, y: 0, width: 300, height: 20)
+        return field
+    }
+
     func promptAndApply(_ operation: BitwiseOperation) {
         let alert = NSAlert()
         alert.messageText = "\(operationTitle(operation)) 操作"
@@ -222,6 +346,39 @@ final class RegisterViewModel: ObservableObject {
     private func synchronizeFields(excluding excluded: NumericBase? = nil) {
         for base in NumericBase.allCases where base != excluded {
             assign(formatted(base), to: base)
+        }
+    }
+
+    private func synchronizeCapacityFields(excluding excluded: CapacityField? = nil) {
+        let parts = CapacityCore.parts(for: capacityValue)
+
+        if excluded != .hexadecimal {
+            capacityHexText = CapacityCore.formatHexadecimal(capacityValue, uppercase: uppercase)
+        }
+        if excluded != .decimal {
+            capacityDecimalText = String(capacityValue)
+        }
+        if excluded != .gigabytes { capacityGBText = String(parts.gigabytes) }
+        if excluded != .megabytes { capacityMBText = String(parts.megabytes) }
+        if excluded != .kilobytes { capacityKBText = String(parts.kilobytes) }
+        if excluded != .bytes { capacityBText = String(parts.bytes) }
+    }
+
+    func capacityText(for unit: CapacityUnit) -> String {
+        switch unit {
+        case .gigabytes: return capacityGBText
+        case .megabytes: return capacityMBText
+        case .kilobytes: return capacityKBText
+        case .bytes: return capacityBText
+        }
+    }
+
+    private func assignCapacityUnitText(_ text: String, unit: CapacityUnit) {
+        switch unit {
+        case .gigabytes: capacityGBText = text
+        case .megabytes: capacityMBText = text
+        case .kilobytes: capacityKBText = text
+        case .bytes: capacityBText = text
         }
     }
 

@@ -5,14 +5,20 @@ struct RegisterBitEditorApp: App {
     @StateObject private var model = RegisterViewModel()
 
     var body: some Scene {
-        WindowGroup("寄存器位编辑器") {
+        WindowGroup("RegisterKit — 寄存器工具箱") {
             ContentView()
                 .environmentObject(model)
-                .frame(minWidth: 540, minHeight: 330)
+                .frame(minWidth: 540, minHeight: 400)
         }
-        .defaultSize(width: 560, height: 350)
+        .defaultSize(width: 560, height: 420)
         .windowResizability(.contentMinSize)
         .commands {
+            CommandGroup(replacing: .appInfo) {
+                Button("关于 RegisterKit") {
+                    model.showAbout()
+                }
+            }
+
             CommandMenu("寄存器") {
                 Button("清零") {
                     model.clear()

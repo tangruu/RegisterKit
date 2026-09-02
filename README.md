@@ -1,8 +1,8 @@
 <div align="center">
-  <img src="RegisterBitEditor/Design/AppIcon-1024.png" width="128" alt="RegisterBitEditor icon">
-  <h1>RegisterBitEditor / 寄存器位编辑器</h1>
+  <img src="RegisterBitEditor/Design/AppIcon-1024.png" width="128" alt="RegisterKit icon">
+  <h1>RegisterKit / 寄存器工具箱</h1>
   <p>一款紧凑的原生 macOS 寄存器位编辑与进制转换工具。<br>A compact native macOS register bit editor and radix conversion utility.</p>
-  <p><strong>Version 0.1 (14) · Apple Silicon · macOS 13+</strong></p>
+  <p><strong>Version 0.2 (20) · Apple Silicon · macOS 13+</strong></p>
   <p><a href="#中文">中文</a> · <a href="#english">English</a></p>
 </div>
 
@@ -11,7 +11,8 @@
 ## 主界面预览 / Interface Preview
 
 <div align="center">
-  <img src="view.png" alt="RegisterBitEditor 32-bit main window / 寄存器位编辑器 32 位主界面">
+  <img src="view.png" width="540" alt="RegisterKit v0.2 32-bit main window with capacity conversion / 寄存器工具箱 v0.2 32 位主界面及容量换算">
+  <p>v0.2 实际运行截图 · 32 位模式 · 深色外观<br>Actual v0.2 app screenshot · 32-bit mode · Dark appearance</p>
 </div>
 
 ---
@@ -20,7 +21,7 @@
 
 ### 简介
 
-RegisterBitEditor 是一个使用 SwiftUI 编写的原生 macOS 调试工具，适合芯片寄存器配置、位掩码计算和数值格式转换。它默认使用紧凑的 32 位界面，也可以快速切换到 64 位模式。
+RegisterKit 是一个使用 SwiftUI 编写的原生 macOS 调试工具，适合芯片寄存器配置、位掩码计算、数值格式和容量换算。它默认使用紧凑的 32 位界面，也可以快速切换到 64 位模式。
 
 ### 功能
 
@@ -39,6 +40,12 @@ RegisterBitEditor 是一个使用 SwiftUI 编写的原生 macOS 调试工具，�
 - 一键打开 macOS 系统计算器
 - 默认窗口置顶，可随时关闭
 - 32/64 位切换时自动调整窗口大小
+- 独立的容量换算：Hex、Dec、GiB、MiB、KiB、B 实时同步
+- 容量十六进制始终带 `0x`，并从右向左每 4 位自动分组
+- 容量范围为 `0～1024 GiB - 1 B`（最大 `0xFF FFFF FFFF`，即 `1099511627775 B`）
+- 超出容量范围的十六进制输入会被拒绝，输入框保持原值并抖动提示
+- 单位输入超过 1023 时自动限制为 1023，并让对应输入框抖动提示
+- 自定义“关于”窗口显示版本、构建时间、容量范围和 GitHub 链接
 
 ### 系统要求
 
@@ -48,7 +55,7 @@ RegisterBitEditor 是一个使用 SwiftUI 编写的原生 macOS 调试工具，�
 
 ### 直接运行
 
-请从本仓库的 **Releases** 页面下载 `RegisterBitEditor-v0.1-macOS.zip`，解压后打开 `RegisterBitEditor.app`。应用安装包只发布在 Releases 中，不放入源码仓库。
+已发布的应用请从 [Releases](https://github.com/tangruu/registerdump/releases) 下载。目前公开发布版本为 v0.1（原名 RegisterBitEditor）；本页截图与源码对应 v0.2，可按下方步骤构建 `RegisterKit.app`。应用安装包仅通过 Releases 分发，不放入源码仓库。
 
 应用目前使用 ad-hoc 临时签名，没有经过 Apple 公证。首次打开时，如果 macOS 显示安全提示，请右键应用并选择“打开”，或在“系统设置 → 隐私与安全性”中允许。
 
@@ -75,7 +82,7 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 构建产物位于：
 
 ```text
-/private/tmp/RegisterBitEditorDerivedData/Build/Products/Release/RegisterBitEditor.app
+/private/tmp/RegisterBitEditorDerivedData/Build/Products/Release/RegisterKit.app
 ```
 
 ### 使用说明
@@ -86,6 +93,7 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 4. 使用“有符号”和“大写”选项改变显示方式。
 5. AND、OR、XOR、NOT 位运算位于菜单栏的“位运算”菜单。
 6. 点击 Hex、Dec、Oct 或 Bin 标签即可复制对应数值。
+7. 在分割线下方输入容量的十六进制、十进制或任一单位值，其他字段会按 1024 进位自动换算。
 
 ### 项目结构
 
@@ -110,7 +118,7 @@ HANDOFF.md                          维护、构建和交接说明
 
 ### Overview
 
-RegisterBitEditor is a native macOS debugging utility built with SwiftUI. It is designed for chip register configuration, bit-mask calculations, and radix conversion. The app opens in a compact 32-bit layout and can switch to a 64-bit layout when needed.
+RegisterKit is a native macOS debugging utility built with SwiftUI. It is designed for chip register configuration, bit-mask calculations, radix conversion, and capacity conversion. The app opens in a compact 32-bit layout and can switch to a 64-bit layout when needed.
 
 ### Features
 
@@ -129,16 +137,22 @@ RegisterBitEditor is a native macOS debugging utility built with SwiftUI. It is 
 - Open the built-in macOS Calculator
 - Always-on-top window enabled by default
 - Automatic window resizing when switching register width
+- Independent capacity conversion synchronized across Hex, Dec, GiB, MiB, KiB, and B
+- Capacity hexadecimal values always include `0x` and are grouped every four digits from the right
+- Capacity range: `0–1024 GiB - 1 B` (maximum `0xFF FFFF FFFF`, or `1099511627775 B`)
+- Out-of-range hexadecimal input is rejected; the field keeps its previous value and shakes as feedback
+- Unit input above 1023 is capped at 1023 and its field shakes as feedback
+- Custom About window with version, build time, capacity range, and a GitHub link
 
 ### Requirements
 
 - Apple Silicon Mac (arm64)
 - macOS 13 or later
-- A full Xcode installation is required to build from source; the current release was verified with Xcode 26
+- A full Xcode installation is required to build from source; the current version was verified with Xcode 26
 
 ### Run the App
 
-Download `RegisterBitEditor-v0.1-macOS.zip` from this repository's **Releases** page, extract it, and open `RegisterBitEditor.app`. Application builds are published only through Releases and are not stored in the source repository.
+Download published builds from [Releases](https://github.com/tangruu/registerdump/releases). The current public release is v0.1, under the former name RegisterBitEditor. The screenshot and source on this page reflect v0.2; follow the instructions below to build `RegisterKit.app`. Application builds are distributed only through Releases, not stored in the source repository.
 
 The bundled app uses an ad-hoc signature and is not notarized by Apple. On first launch, you may need to right-click the app and choose **Open**, or allow it under **System Settings → Privacy & Security**.
 
@@ -165,7 +179,7 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 Build output:
 
 ```text
-/private/tmp/RegisterBitEditorDerivedData/Build/Products/Release/RegisterBitEditor.app
+/private/tmp/RegisterBitEditorDerivedData/Build/Products/Release/RegisterKit.app
 ```
 
 ### Usage
@@ -176,6 +190,7 @@ Build output:
 4. Use the signed and uppercase options to change number formatting.
 5. AND, OR, XOR, and NOT are available from the **Bitwise Operations** menu.
 6. Click a Hex, Dec, Oct, or Bin label to copy its value.
+7. In the section below the divider, enter a hexadecimal, decimal, or unit value to update the other capacity fields using base-1024 conversion.
 
 ### Project Layout
 
