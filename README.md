@@ -55,7 +55,9 @@ RegisterKit 是一个使用 SwiftUI 编写的原生 macOS 调试工具，适合�
 
 ### 直接运行
 
-已发布的应用请从 [Releases](https://github.com/tangruu/RegisterKit/releases) 下载。目前公开发布版本为 v0.1（原名 RegisterBitEditor）；本页截图与源码对应 v0.2，可按下方步骤构建 `RegisterKit.app`。应用安装包仅通过 Releases 分发，不放入源码仓库。
+当前发布版本为 [RegisterKit v0.2（构建 21）](https://github.com/tangruu/RegisterKit/releases/tag/v0.2)。下载 [RegisterKit-v0.2-macOS.dmg](https://github.com/tangruu/RegisterKit/releases/download/v0.2/RegisterKit-v0.2-macOS.dmg)，打开后将 `RegisterKit.app` 拖入 `Applications`。
+
+应用安装包仅通过 Releases 分发，不放入源码仓库。请下载 DMG 附件；GitHub 自动提供的 Source code 文件是源码，不是可运行应用。
 
 应用目前使用 ad-hoc 临时签名，没有经过 Apple 公证。首次打开时，如果 macOS 显示安全提示，请右键应用并选择“打开”，或在“系统设置 → 隐私与安全性”中允许。
 
@@ -152,7 +154,9 @@ RegisterKit is a native macOS debugging utility built with SwiftUI. It is design
 
 ### Run the App
 
-Download published builds from [Releases](https://github.com/tangruu/RegisterKit/releases). The current public release is v0.1, under the former name RegisterBitEditor. The screenshot and source on this page reflect v0.2; follow the instructions below to build `RegisterKit.app`. Application builds are distributed only through Releases, not stored in the source repository.
+The current release is [RegisterKit v0.2 (build 21)](https://github.com/tangruu/RegisterKit/releases/tag/v0.2). Download [RegisterKit-v0.2-macOS.dmg](https://github.com/tangruu/RegisterKit/releases/download/v0.2/RegisterKit-v0.2-macOS.dmg), open it, and drag `RegisterKit.app` into `Applications`.
+
+Application builds are distributed only through Releases, not stored in the source repository. Download the DMG asset; GitHub's automatically generated Source code files contain source code, not a runnable app.
 
 The bundled app uses an ad-hoc signature and is not notarized by Apple. On first launch, you may need to right-click the app and choose **Open**, or allow it under **System Settings → Privacy & Security**.
 

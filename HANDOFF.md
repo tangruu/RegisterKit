@@ -12,6 +12,8 @@ RegisterKit（寄存器工具箱）是一个原生 macOS SwiftUI 寄存器调试
 - Bundle ID：`com.codex.RegisterKit`
 - 当前版本：`0.2 (21)`
 - Release App：构建到 `output/RegisterKit.app`，不纳入 Git
+- 已发布版本：[v0.2（构建 21）](https://github.com/tangruu/RegisterKit/releases/tag/v0.2)
+- 发布附件：`RegisterKit-v0.2-macOS.dmg`，同样不纳入 Git
 
 ## 当前产品要求
 
@@ -113,3 +115,7 @@ codesign --verify --deep --strict output/RegisterKit.app
 ## 分发注意事项
 
 当前输出使用 ad-hoc 临时签名，没有 Developer ID 公证。发送给其他用户后，对方首次打开可能需要右键选择“打开”。正式公开分发时应改用 Developer ID Application 证书签名并进行 Apple notarization。
+
+通过 GitHub Releases 发布 DMG，磁盘映像内放置 `RegisterKit.app` 和指向 `/Applications` 的快捷入口。发布前验证 App 签名、DMG 完整性及 SHA-256，指定与构建对应的准确提交；发布后核对远程附件大小和校验值，再更新中英 README 的下载链接。
+
+可使用已登录的官方 GitHub CLI 完成发布，无需依赖内置浏览器。先运行 `gh auth status` 确认账号，再检查是否已有相同标签或草稿；不要覆盖已有发布附件。GitHub 自动生成的 Source code ZIP/TAR 是源码归档，不是应用安装包。
