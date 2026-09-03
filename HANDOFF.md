@@ -4,12 +4,13 @@
 
 RegisterKit（寄存器工具箱）是一个原生 macOS SwiftUI 寄存器调试与容量换算工具。目前只构建 Apple Silicon（arm64），最低支持 macOS 13。
 
-- 项目根目录：克隆后的 `registerdump` 仓库目录
+- 项目根目录：克隆后的 `RegisterKit` 仓库目录；已有本地目录无需随仓库更名而迁移
+- GitHub：<https://github.com/tangruu/RegisterKit>
 - Xcode 工程：`RegisterBitEditor.xcodeproj`
 - App target：`RegisterBitEditor`
 - 对外产品名：`RegisterKit`
 - Bundle ID：`com.codex.RegisterKit`
-- 当前版本：`0.2 (20)`
+- 当前版本：`0.2 (21)`
 - Release App：构建到 `output/RegisterKit.app`，不纳入 Git
 
 ## 当前产品要求
@@ -64,7 +65,7 @@ RegisterKit（寄存器工具箱）是一个原生 macOS SwiftUI 寄存器调试
 系统当前 `xcode-select` 可能仍指向 Command Line Tools，因此命令行构建应显式指定完整 Xcode：
 
 ```sh
-cd registerdump
+cd RegisterKit
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
   /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild \
   -project RegisterBitEditor.xcodeproj \
@@ -91,7 +92,7 @@ codesign --force --deep --sign - output/RegisterKit.app
 codesign --verify --deep --strict output/RegisterKit.app
 ```
 
-修改后务必同步增加 `MARKETING_VERSION` 和 `CURRENT_PROJECT_VERSION`，然后完成 Release 编译，不要只交付源码。
+修改后务必增加 `CURRENT_PROJECT_VERSION`；`MARKETING_VERSION` 按发布版本更新（v0.2 发布前的修订仍保持 0.2）。然后完成 Release 编译，不要只交付源码。
 
 ## 验证清单
 

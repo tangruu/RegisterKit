@@ -2,7 +2,7 @@
   <img src="RegisterBitEditor/Design/AppIcon-1024.png" width="128" alt="RegisterKit icon">
   <h1>RegisterKit / 寄存器工具箱</h1>
   <p>一款紧凑的原生 macOS 寄存器位编辑与进制转换工具。<br>A compact native macOS register bit editor and radix conversion utility.</p>
-  <p><strong>Version 0.2 (20) · Apple Silicon · macOS 13+</strong></p>
+  <p><strong>Version 0.2 (21) · Apple Silicon · macOS 13+</strong></p>
   <p><a href="#中文">中文</a> · <a href="#english">English</a></p>
 </div>
 
@@ -55,7 +55,7 @@ RegisterKit 是一个使用 SwiftUI 编写的原生 macOS 调试工具，适合�
 
 ### 直接运行
 
-已发布的应用请从 [Releases](https://github.com/tangruu/registerdump/releases) 下载。目前公开发布版本为 v0.1（原名 RegisterBitEditor）；本页截图与源码对应 v0.2，可按下方步骤构建 `RegisterKit.app`。应用安装包仅通过 Releases 分发，不放入源码仓库。
+已发布的应用请从 [Releases](https://github.com/tangruu/RegisterKit/releases) 下载。目前公开发布版本为 v0.1（原名 RegisterBitEditor）；本页截图与源码对应 v0.2，可按下方步骤构建 `RegisterKit.app`。应用安装包仅通过 Releases 分发，不放入源码仓库。
 
 应用目前使用 ad-hoc 临时签名，没有经过 Apple 公证。首次打开时，如果 macOS 显示安全提示，请右键应用并选择“打开”，或在“系统设置 → 隐私与安全性”中允许。
 
@@ -66,8 +66,8 @@ RegisterKit 是一个使用 SwiftUI 编写的原生 macOS 调试工具，适合�
 也可以使用命令行：
 
 ```sh
-git clone https://github.com/tangruu/registerdump.git
-cd registerdump
+git clone https://github.com/tangruu/RegisterKit.git
+cd RegisterKit
 
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
   /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild \
@@ -152,7 +152,7 @@ RegisterKit is a native macOS debugging utility built with SwiftUI. It is design
 
 ### Run the App
 
-Download published builds from [Releases](https://github.com/tangruu/registerdump/releases). The current public release is v0.1, under the former name RegisterBitEditor. The screenshot and source on this page reflect v0.2; follow the instructions below to build `RegisterKit.app`. Application builds are distributed only through Releases, not stored in the source repository.
+Download published builds from [Releases](https://github.com/tangruu/RegisterKit/releases). The current public release is v0.1, under the former name RegisterBitEditor. The screenshot and source on this page reflect v0.2; follow the instructions below to build `RegisterKit.app`. Application builds are distributed only through Releases, not stored in the source repository.
 
 The bundled app uses an ad-hoc signature and is not notarized by Apple. On first launch, you may need to right-click the app and choose **Open**, or allow it under **System Settings → Privacy & Security**.
 
@@ -163,8 +163,8 @@ Open `RegisterBitEditor.xcodeproj` in Xcode, select **My Mac**, then run or buil
 Command-line build:
 
 ```sh
-git clone https://github.com/tangruu/registerdump.git
-cd registerdump
+git clone https://github.com/tangruu/RegisterKit.git
+cd RegisterKit
 
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
   /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild \

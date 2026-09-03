@@ -196,6 +196,8 @@ final class RegisterViewModel: ObservableObject {
         let alert = NSAlert()
         alert.messageText = "RegisterKit"
         alert.informativeText = """
+        寄存器位编辑、位运算与进制 / 容量换算工具。
+
         版本：v\(version)（构建 \(build)）
         构建时间：\(formattedBuildTime())
         容量范围：0 ～ 1024 GiB - 1 B
@@ -278,10 +280,10 @@ final class RegisterViewModel: ObservableObject {
     }
 
     private func githubLinkView() -> NSTextField {
-        let githubURL = URL(string: "https://github.com/tangruu/registerdump")!
+        let githubURL = URL(string: "https://github.com/tangruu/RegisterKit")!
         let text = NSMutableAttributedString(string: "GitHub：")
         text.append(NSAttributedString(
-            string: "github.com/tangruu/registerdump",
+            string: "github.com/tangruu/RegisterKit",
             attributes: [
                 .link: githubURL,
                 .foregroundColor: NSColor.linkColor,
